@@ -60,9 +60,10 @@ export default function DraftsPage() {
     };
 
 
-    const handleCopy = (e: React.MouseEvent, text: string, index: number) => {
+    const handleCopy = (e: React.MouseEvent, post: any, index: number) => {
         e.stopPropagation();
-        navigator.clipboard.writeText(text);
+        const textToCopy = typeof post === 'string' ? post : post.body;
+        navigator.clipboard.writeText(textToCopy);
         setCopiedIndex(index);
         setTimeout(() => setCopiedIndex(null), 2000);
     };
@@ -265,7 +266,12 @@ export default function DraftsPage() {
                                         {parsed.posts?.map((post, idx) => (
                                             <div key={idx} className="card glass" style={{ padding: '1.5rem', border: '1px solid rgba(255,255,255,0.1)' }}>
                                                 <div className="flex justify-between items-center" style={{ marginBottom: '1rem' }}>
-                                                    <span className="badge" style={{ fontSize: '0.7rem' }}>投稿案 {idx + 1}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="badge" style={{ fontSize: '0.7rem' }}>案 {idx + 1}</span>
+                                                        <span style={{ fontSize: '0.8rem', fontWeight: 600, opacity: 0.8 }}>
+                                                            {typeof post === 'string' ? '' : post.title}
+                                                        </span>
+                                                    </div>
                                                     <button
                                                         onClick={(e) => handleCopy(e, post, idx)}
                                                         className="btn btn-secondary flex items-center gap-2"
@@ -276,7 +282,7 @@ export default function DraftsPage() {
                                                     </button>
                                                 </div>
                                                 <div style={{ whiteSpace: "pre-wrap", fontSize: '0.95rem', lineHeight: 1.7 }}>
-                                                    {post}
+                                                    {typeof post === 'string' ? post : post.body}
                                                 </div>
                                             </div>
                                         ))}

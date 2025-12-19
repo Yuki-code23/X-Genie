@@ -83,18 +83,18 @@ ${eventInfo}
 【出力形式】
 <comment>（ユーザーへの一言返事：入力内容への期待や意気込みなど）</comment>
 
+<post1_title>【インパクト重視】</post1_title>
 <post1>
-タイトル：【インパクト重視】
 （投稿文本文）
 </post1>
 
+<post2_title>【ベネフィット重視】</post2_title>
 <post2>
-タイトル：【ベネフィット重視】
 （投稿文本文）
 </post2>
 
+<post3_title>【共感・ストーリー重視】</post3_title>
 <post3>
-タイトル：【共感・ストーリー重視】
 （投稿文本文）
 </post3>
 

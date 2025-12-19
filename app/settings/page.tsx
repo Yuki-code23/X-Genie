@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Sparkles, Save, ArrowLeft, Key, User, Shield, Loader2 } from "lucide-react";
+import { Sparkles, Save, ArrowLeft, Key, User, Shield, Loader2, LogOut } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
@@ -13,6 +13,11 @@ export default function SettingsPage() {
     const [loading, setLoading] = useState(true);
 
     const supabase = createClient();
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        window.location.href = "/login";
+    };
 
     const fetchKeys = async (userId: string) => {
         const { data, error } = await supabase
@@ -124,23 +129,38 @@ export default function SettingsPage() {
                         <h2 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <User size={20} color="var(--primary)" /> プロフィール情報
                         </h2>
-                        <div className="flex items-center gap-4">
-                            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--muted)', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                                <User size={32} color="var(--muted-foreground)" />
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-4">
+                                <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--muted)', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                                    <User size={32} color="var(--muted-foreground)" />
+                                </div>
+                                <div>
+                                    {loading && !user ? (
+                                        <div className="flex items-center gap-2">
+                                            <Loader2 className="animate-spin" size={16} />
+                                            <p className="text-muted">読み込み中...</p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <p style={{ fontWeight: 600 }}>{user?.email?.split('@')[0] || "ユーザー"}</p>
+                                            <p className="text-muted">{user?.email || "未ログイン"}</p>
+                                        </>
+                                    )}
+                                </div>
                             </div>
-                            <div>
-                                {loading && !user ? (
-                                    <div className="flex items-center gap-2">
-                                        <Loader2 className="animate-spin" size={16} />
-                                        <p className="text-muted">読み込み中...</p>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <p style={{ fontWeight: 600 }}>{user?.email?.split('@')[0] || "ユーザー"}</p>
-                                        <p className="text-muted">{user?.email || "未ログイン"}</p>
-                                    </>
-                                )}
-                            </div>
+                            <button
+                                onClick={handleLogout}
+                                className="btn btn-secondary"
+                                style={{
+                                    color: '#ff4d4d',
+                                    padding: '0.4rem 0.8rem',
+                                    fontSize: '0.8rem',
+                                    height: 'auto',
+                                    minHeight: 'unset'
+                                }}
+                            >
+                                <LogOut size={16} /> ログアウト
+                            </button>
                         </div>
                     </section>
 
