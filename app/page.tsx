@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
-  Sparkles,
   Send,
   RefreshCw,
   Settings,
@@ -94,10 +93,10 @@ ${input ? `\n【追加情報】:\n${input}` : ""}
       <nav className="glass" style={{ padding: '1rem 2rem', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 10 }}>
         <div className="container flex justify-between items-center" style={{ padding: 0 }}>
           <div className="flex items-center gap-2">
-            <div style={{ background: 'var(--primary)', padding: '0.5rem', borderRadius: '0.5rem' }}>
-              <Sparkles size={20} color="white" />
+            <div style={{ padding: '0.2rem', borderRadius: '0.5rem', display: 'flex', alignItems: 'center' }}>
+              <img src="/logo.png?v=2" alt="X-Genie Logo" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
             </div>
-            <span style={{ fontWeight: 700, fontSize: '1.25rem' }}>X-Genie</span>
+            <span className="brand-text" style={{ fontSize: '1.25rem' }}>X-Genie</span>
           </div>
           <div className="flex gap-4">
             <Link href="/drafts" className="btn btn-secondary"><FileText size={18} /> 下書き</Link>
@@ -213,7 +212,7 @@ ${input ? `\n【追加情報】:\n${input}` : ""}
                     </>
                   ) : (
                     <>
-                      <Sparkles size={18} />
+                      <img src="/logo.png?v=2" alt="" style={{ width: '20px', height: '20px' }} />
                       ドラフトを生成
                     </>
                   )}
@@ -229,9 +228,7 @@ ${input ? `\n【追加情報】:\n${input}` : ""}
                 {/* AI Response / Comment */}
                 <div className="card glass" style={{ padding: '1.25rem', background: 'rgba(255,255,255,0.03)' }}>
                   <div className="flex items-center gap-2" style={{ marginBottom: '0.75rem', opacity: 0.8 }}>
-                    <div style={{ background: 'var(--primary)', padding: '0.3rem', borderRadius: '0.4rem' }}>
-                      <Sparkles size={14} color="white" />
-                    </div>
+                    <img src="/logo.png?v=2" alt="" style={{ width: '18px', height: '18px' }} />
                     <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>AIからのメッセージ</span>
                   </div>
                   <p style={{ fontSize: '0.95rem', lineHeight: 1.6, opacity: 0.9 }}>
@@ -285,14 +282,14 @@ ${input ? `\n【追加情報】:\n${input}` : ""}
               </div>
             )}
             {!resultData && (
-              <div className="card glass" style={{ borderStyle: 'dashed', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px', textAlign: 'center' }}>
-                <div style={{ background: 'var(--muted)', padding: '1.5rem', borderRadius: '50%', marginBottom: '1rem' }}>
-                  <Sparkles size={32} color="var(--muted-foreground)" />
+              <div className="card glass" style={{ borderStyle: 'dashed', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px', textAlign: 'center', gap: '1.5rem' }}>
+                <img src="/logo.png?v=2" alt="" style={{ width: '64px', height: '64px', opacity: 0.5, filter: 'grayscale(0.5)' }} />
+                <div>
+                  <h3 style={{ color: 'var(--muted-foreground)' }}>ここにドラフトが表示されます</h3>
+                  <p className="text-muted" style={{ maxWidth: '280px', marginTop: '0.5rem' }}>
+                    左側にイベントの詳細を入力して、エンゲージメントの高い投稿案を生成しましょう。
+                  </p>
                 </div>
-                <h3 style={{ color: 'var(--muted-foreground)' }}>ここにドラフトが表示されます</h3>
-                <p className="text-muted" style={{ maxWidth: '280px', marginTop: '0.5rem' }}>
-                  左側にイベントの詳細を入力して、エンゲージメントの高い投稿案を生成しましょう。
-                </p>
               </div>
             )}
           </section>

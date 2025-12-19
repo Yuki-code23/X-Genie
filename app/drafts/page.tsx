@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Sparkles, ArrowLeft, Trash2, Copy, Check, Calendar, Tag, Loader2, FileText, X } from "lucide-react";
+import { ArrowLeft, Trash2, Copy, Check, Calendar, Tag, Loader2, FileText, X } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { parseAIContent } from "@/lib/ai/parser";
@@ -96,7 +96,12 @@ export default function DraftsPage() {
                         <Link href="/" className="btn btn-secondary" style={{ padding: '0.5rem' }}>
                             <ArrowLeft size={20} />
                         </Link>
-                        <span style={{ fontWeight: 700, fontSize: '1.25rem' }}>下書き一覧</span>
+                        <div style={{ padding: '0.1rem', display: 'flex', alignItems: 'center', marginLeft: '0.5rem' }}>
+                            <img src="/logo.png?v=2" alt="" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+                        </div>
+                        <span className="brand-text" style={{ fontSize: '1.25rem' }}>X-Genie</span>
+                        <span style={{ fontSize: '1.25rem', opacity: 0.5, margin: '0 0.5rem' }}>/</span>
+                        <span style={{ fontWeight: 600, fontSize: '1.1rem', opacity: 0.8 }}>下書き一覧</span>
                     </div>
                 </div>
             </nav>
@@ -253,7 +258,7 @@ export default function DraftsPage() {
                                     {/* AI Message */}
                                     <div className="card glass" style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)' }}>
                                         <div className="flex items-center gap-2" style={{ marginBottom: '0.5rem', opacity: 0.8 }}>
-                                            <Sparkles size={14} color="var(--primary)" />
+                                            <img src="/logo.png?v=2" alt="" style={{ width: '18px', height: '18px' }} />
                                             <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>AIからのメッセージ</span>
                                         </div>
                                         <p style={{ fontSize: '0.9rem', lineHeight: 1.6, opacity: 0.9 }}>

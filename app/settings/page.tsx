@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Sparkles, Save, ArrowLeft, Key, User, Shield, Loader2, LogOut } from "lucide-react";
+import { Save, ArrowLeft, Key, User, Shield, Loader2, LogOut } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
@@ -117,7 +117,12 @@ export default function SettingsPage() {
                         <Link href="/" className="btn btn-secondary" style={{ padding: '0.5rem' }}>
                             <ArrowLeft size={20} />
                         </Link>
-                        <span style={{ fontWeight: 700, fontSize: '1.25rem' }}>設定</span>
+                        <div style={{ padding: '0.1rem', display: 'flex', alignItems: 'center', marginLeft: '0.5rem' }}>
+                            <img src="/logo.png?v=2" alt="" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+                        </div>
+                        <span className="brand-text" style={{ fontSize: '1.25rem' }}>X-Genie</span>
+                        <span style={{ fontSize: '1.25rem', opacity: 0.5, margin: '0 0.5rem' }}>/</span>
+                        <span style={{ fontWeight: 600, fontSize: '1.25rem', opacity: 0.8 }}>設定</span>
                     </div>
                 </div>
             </nav>

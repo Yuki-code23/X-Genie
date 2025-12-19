@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
@@ -26,10 +26,10 @@ export default function LoginPage() {
         <main className="flex items-center justify-center" style={{ minHeight: '100vh', width: '100vw' }}>
             <div className="card glass shadow-2xl" style={{ width: '90%', maxWidth: '420px', padding: '3rem' }}>
                 <div className="flex flex-col items-center gap-4" style={{ marginBottom: '2rem' }}>
-                    <div style={{ background: 'var(--primary)', padding: '0.75rem', borderRadius: '1rem' }}>
-                        <Sparkles size={32} color="white" />
+                    <div style={{ padding: '0.5rem', borderRadius: '1rem' }}>
+                        <img src="/logo.png?v=2" alt="X-Genie Logo" style={{ width: '64px', height: '64px', objectFit: 'contain' }} />
                     </div>
-                    <h1 style={{ fontSize: '1.75rem', fontWeight: 700 }}>X-Genie ログイン</h1>
+                    <h1 className="brand-text" style={{ fontSize: '1.75rem' }}>X-Genie ログイン</h1>
                     <p className="text-muted">資格情報を入力して続行してください</p>
                 </div>
 
