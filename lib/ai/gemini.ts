@@ -32,6 +32,10 @@ async function sleepWithJitter(attempt: number) {
     return new Promise(resolve => setTimeout(resolve, totalWait));
 }
 
+// Simple in-memory cache for models to reduce redundant API calls to conserve quota
+let modelCache: { ids: string[], timestamp: number } | null = null;
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
 export async function generatePosts(eventInfo: string, mode: 'buzz' | 'trust' | 'story', apiKey?: string) {
     const clientKey = (apiKey && apiKey.trim() !== "") ? apiKey : process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 
@@ -39,22 +43,31 @@ export async function generatePosts(eventInfo: string, mode: 'buzz' | 'trust' | 
         throw new Error("Gemini APIキーが設定されていません。環境変数または設定画面でキーを登録してください。");
     }
 
-    // Dynamic model discovery (no-store to avoid Next.js 15+ fetch caching)
-    let availableModelIds: string[] = ["gemini-1.5-flash"]; // Minimum fallback
-    try {
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models?key=${clientKey}`,
-            { cache: 'no-store' }
-        );
-        const data = await response.json();
-        if (data.models && data.models.length > 0) {
-            availableModelIds = data.models.filter((m: any) =>
-                m.supportedGenerationMethods?.includes('generateContent')
-            ).map((m: any) => m.name.replace('models/', ''));
-            console.log("[AI] Discovered models:", availableModelIds);
+    // Dynamic model discovery (with caching to conserve quota)
+    let availableModelIds: string[] = ["gemini-1.5-flash"];
+
+    const now = Date.now();
+    if (modelCache && (now - modelCache.timestamp < CACHE_TTL)) {
+        availableModelIds = modelCache.ids;
+        console.log("[AI] Using cached models from memory.");
+    } else {
+        try {
+            const response = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models?key=${clientKey}`,
+                { cache: 'no-store' }
+            );
+            const data = await response.json();
+            if (data.models && data.models.length > 0) {
+                availableModelIds = data.models.filter((m: any) =>
+                    m.supportedGenerationMethods?.includes('generateContent')
+                ).map((m: any) => m.name.replace('models/', ''));
+
+                modelCache = { ids: availableModelIds, timestamp: now };
+                console.log("[AI] Discovered/Updated models:", availableModelIds);
+            }
+        } catch (e) {
+            console.warn("[AI] Model discovery failed, using default fallback list.", e);
         }
-    } catch (e) {
-        console.warn("[AI] Model discovery failed, using default fallback list.", e);
     }
 
     // Primary priority list for model selection
