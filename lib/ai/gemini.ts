@@ -156,12 +156,20 @@ ${eventInfo}
     }
 
     // Final error formatting for the UI
+    const debugInfo = {
+        model: selectedModelId,
+        status: lastError?.status || (lastError?.message?.includes('503') ? 503 : lastError?.message?.includes('429') ? 429 : 'unknown'),
+        isCustomKey: !!apiKey
+    };
+
     let userFriendlyMessage = lastError.message;
     if (lastError.message?.includes('503') || lastError.message?.includes('overloaded')) {
         userFriendlyMessage = "AIサーバーが非常に混み合っています。自動リトライを行いましたが解決しませんでした。数分後にもう一度実行してみてください。";
     } else if (lastError.message?.includes('429')) {
-        userFriendlyMessage = "Google AIのリクエスト制限（1日の上限など）に達しました。無料版の場合、制限のリセットは米国太平洋時間の深夜（日本時間では夕方頃）に行われます。個別のAPIキーを設定している場合は、別のキーへの切り替えも検討してください。";
+        userFriendlyMessage = `Google AIのリクエスト制限に達しました。モデル: ${selectedModelId}。\n無料版の制限リセットは米国太平洋時間の深夜に行われます。Google Cloud Consoleの「割り当てとシステム制限」ページで具体的な制限内容を確認してください。`;
     }
 
-    throw new Error(userFriendlyMessage);
+    const finalError: any = new Error(userFriendlyMessage);
+    finalError.debugInfo = debugInfo;
+    throw finalError;
 }

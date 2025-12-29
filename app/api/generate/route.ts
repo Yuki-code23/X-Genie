@@ -71,7 +71,8 @@ export async function POST(req: Request) {
         const keyType = keyData?.api_key ? "個人用APIキー" : "システム共有キー";
 
         return NextResponse.json({
-            error: `${error.message}\n\n(使用中のキー: ${keyType})`
+            error: `${error.message}\n\n(使用中のキー: ${keyType})`,
+            debugInfo: error.debugInfo || null
         }, { status: 500 });
     }
 }
