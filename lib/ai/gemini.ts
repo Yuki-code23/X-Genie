@@ -158,7 +158,9 @@ ${eventInfo}
 
     // Final error formatting for the UI
     const debugInfo = {
+        version: "1.0.1", // To verify deployment
         model: selectedModelId,
+        discoveredModels: availableModelIds,
         status: lastError?.status || (lastError?.message?.includes('503') ? 503 : lastError?.message?.includes('429') ? 429 : 'unknown'),
         isCustomKey: !!apiKey
     };

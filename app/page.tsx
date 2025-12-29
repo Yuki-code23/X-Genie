@@ -240,7 +240,10 @@ ${input ? `\n【追加情報】:\n${input}` : ""}
 
                     {errorInfo.debugInfo && (
                       <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <p style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.6, marginBottom: '0.5rem', textTransform: 'uppercase' }}>Debug Info</p>
+                        <div className="flex justify-between items-center" style={{ marginBottom: '0.5rem' }}>
+                          <p style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.6, textTransform: 'uppercase' }}>Debug Info</p>
+                          <p style={{ fontSize: '0.6rem', opacity: 0.4 }}>v{errorInfo.debugInfo.version || '0.0.0'}</p>
+                        </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <p style={{ fontSize: '0.7rem', opacity: 0.5 }}>Model</p>
@@ -249,6 +252,12 @@ ${input ? `\n【追加情報】:\n${input}` : ""}
                           <div>
                             <p style={{ fontSize: '0.7rem', opacity: 0.5 }}>Status</p>
                             <p style={{ fontSize: '0.8rem', fontFamily: 'monospace' }}>{errorInfo.debugInfo.status || 'unknown'}</p>
+                          </div>
+                          <div style={{ gridColumn: '1 / -1' }}>
+                            <p style={{ fontSize: '0.7rem', opacity: 0.5 }}>Discovered List</p>
+                            <p style={{ fontSize: '0.7rem', fontFamily: 'monospace', opacity: 0.8, wordBreak: 'break-all' }}>
+                              {errorInfo.debugInfo.discoveredModels?.join(', ') || 'none'}
+                            </p>
                           </div>
                         </div>
                       </div>
