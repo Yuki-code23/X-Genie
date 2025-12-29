@@ -71,20 +71,27 @@ export async function generatePosts(eventInfo: string, mode: 'buzz' | 'trust' | 
     }
 
     // Primary priority list for model selection
-    // Primary priority list for model selection (Demote 2.0-flash for stability)
-    const priorityModels = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.0-flash"];
+    // Primary priority list for model selection 
+    // gemini-flash-latest is often 1.5-flash or 2.0-flash depending on current API staging
+    // gemini-2.0-flash-lite is added as a great fallback with higher quotas
+    const priorityModels = ["gemini-1.5-flash", "gemini-flash-latest", "gemini-1.5-flash-latest", "gemini-2.0-flash-lite", "gemini-2.0-flash"];
+
+    // Find first available from priority, otherwise fallback to any discovered
     let selectedModelId = priorityModels.find(p => availableModelIds.includes(p)) || availableModelIds[0];
 
-    console.log(`[AI] Starting generation. Model: ${selectedModelId} (${apiKey ? 'Custom' : 'System'} Key)`);
+    console.log(`[AI] Using model: ${selectedModelId} (Discovered count: ${availableModelIds.length})`);
 
     const genAI = new GoogleGenerativeAI(clientKey);
     const maxRetries = 3;
     let lastError: any = null;
+    const attemptedModels = new Set<string>();
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
+            attemptedModels.add(selectedModelId);
             if (attempt > 0) await sleepWithJitter(attempt);
 
+            console.log(`[AI] Attempt ${attempt + 1}: ${selectedModelId}`);
             const model = genAI.getGenerativeModel({
                 model: selectedModelId,
                 systemInstruction: SYSTEM_PROMPT + "\n\n" + MODE_INSTRUCTIONS[mode]
@@ -136,19 +143,29 @@ ${eventInfo}
             lastError = error;
             const status = error.status || (error.message?.includes('503') ? 503 : error.message?.includes('429') ? 429 : null);
 
-            console.error(`[AI] Attempt ${attempt + 1} failed:`, error.message);
+            console.error(`[AI] Attempt ${attempt + 1} failed (${selectedModelId}):`, error.message);
 
-            // If it's a 429 (Rate Limit) or 503 (Overloaded), try to switch model IMMEDIATELY if we have more attempts
+            // If it's a 429 (Rate Limit) or 503 (Overloaded), try to switch model IMMEDIATELY
             if ((status === 429 || status === 503) && attempt < maxRetries) {
-                const fallback = availableModelIds.find(m => m !== selectedModelId && priorityModels.includes(m));
-                if (fallback) {
-                    console.log(`[AI] ${status} detected. Switching from ${selectedModelId} to fallback: ${fallback}`);
-                    selectedModelId = fallback;
-                    continue; // Immediately retry with the new model
+                // Try to find a priority model we haven't tried yet
+                const nextPriority = priorityModels.find(m => availableModelIds.includes(m) && !attemptedModels.has(m));
+
+                if (nextPriority) {
+                    console.log(`[AI] ${status} detected. Switching to next priority: ${nextPriority}`);
+                    selectedModelId = nextPriority;
+                    continue;
+                } else {
+                    // Fallback to any model from discovered list that we haven't tried
+                    const genericFallback = availableModelIds.find(m => !attemptedModels.has(m));
+                    if (genericFallback) {
+                        console.log(`[AI] ${status} detected. No more priority models. Switching to generic fallback: ${genericFallback}`);
+                        selectedModelId = genericFallback;
+                        continue;
+                    }
                 }
             }
 
-            // Normal backoff for transient errors
+            // Normal backoff for transient errors if no fallback available or other error type
             const isTransient = status === 503 || status === 429 || error.message?.includes('fetch') || error.message?.includes('overloaded');
             if (!isTransient || attempt === maxRetries) {
                 break;
