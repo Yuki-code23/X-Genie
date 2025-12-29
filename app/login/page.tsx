@@ -13,12 +13,26 @@ export default function LoginPage() {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        console.log("[Auth] Attempting login for:", email);
+
         const { error } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
-        if (error) alert("ログインに失敗しました: " + error.message);
-        else window.location.href = "/";
+
+        if (error) {
+            console.error("[Auth] Login error:", error);
+            let message = error.message;
+            if (error.status === 429) {
+                message = "ログイン試行回数が制限を超えました。しばらく時間を置いてから再度お試しください（Supabase Auth制限）。";
+            } else if (message.includes("Invalid login credentials")) {
+                message = "メールアドレスまたはパスワードが正しくありません。本番環境のSupabaseにユーザーが登録されているか確認してください。";
+            }
+            alert("ログインに失敗しました: " + message);
+        } else {
+            console.log("[Auth] Login successful");
+            window.location.href = "/";
+        }
         setLoading(false);
     };
 

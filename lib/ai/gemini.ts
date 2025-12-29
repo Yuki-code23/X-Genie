@@ -39,10 +39,13 @@ export async function generatePosts(eventInfo: string, mode: 'buzz' | 'trust' | 
         throw new Error("Gemini APIキーが設定されていません。環境変数または設定画面でキーを登録してください。");
     }
 
-    // Dynamic model discovery
+    // Dynamic model discovery (no-store to avoid Next.js 15+ fetch caching)
     let availableModelIds: string[] = ["gemini-1.5-flash"]; // Minimum fallback
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${clientKey}`);
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models?key=${clientKey}`,
+            { cache: 'no-store' }
+        );
         const data = await response.json();
         if (data.models && data.models.length > 0) {
             availableModelIds = data.models.filter((m: any) =>
@@ -144,7 +147,7 @@ ${eventInfo}
     if (lastError.message?.includes('503') || lastError.message?.includes('overloaded')) {
         userFriendlyMessage = "AIサーバーが非常に混み合っています。自動リトライを行いましたが解決しませんでした。数分後にもう一度実行してみてください。";
     } else if (lastError.message?.includes('429')) {
-        userFriendlyMessage = "リクエスト制限に達しました。約60秒ほど時間を置いてから再度お試しください。";
+        userFriendlyMessage = "Google AIのリクエスト制限（1日の上限など）に達しました。無料版の場合、制限のリセットは米国太平洋時間の深夜（日本時間では夕方頃）に行われます。個別のAPIキーを設定している場合は、別のキーへの切り替えも検討してください。";
     }
 
     throw new Error(userFriendlyMessage);
