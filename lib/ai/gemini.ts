@@ -71,7 +71,8 @@ export async function generatePosts(eventInfo: string, mode: 'buzz' | 'trust' | 
     }
 
     // Primary priority list for model selection
-    const priorityModels = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-flash-latest"];
+    // Primary priority list for model selection (Demote 2.0-flash for stability)
+    const priorityModels = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.0-flash"];
     let selectedModelId = priorityModels.find(p => availableModelIds.includes(p)) || availableModelIds[0];
 
     console.log(`[AI] Starting generation. Model: ${selectedModelId} (${apiKey ? 'Custom' : 'System'} Key)`);
@@ -137,19 +138,19 @@ ${eventInfo}
 
             console.error(`[AI] Attempt ${attempt + 1} failed:`, error.message);
 
-            // If it's a transient error (503, 429, or network issue), we retry
-            const isTransient = status === 503 || status === 429 || error.message?.includes('fetch') || error.message?.includes('overloaded');
-
-            if (!isTransient || attempt === maxRetries) {
-                // If not transient or last attempt, try switching model as a last resort if it was a 503 or 429
-                if ((status === 503 || status === 429) && attempt < maxRetries) {
-                    const fallback = availableModelIds.find(m => m !== selectedModelId && priorityModels.includes(m));
-                    if (fallback) {
-                        console.log(`[AI] ${status} detected. Switching fallback model from ${selectedModelId} to ${fallback}`);
-                        selectedModelId = fallback;
-                        continue; // Retrying with new model
-                    }
+            // If it's a 429 (Rate Limit) or 503 (Overloaded), try to switch model IMMEDIATELY if we have more attempts
+            if ((status === 429 || status === 503) && attempt < maxRetries) {
+                const fallback = availableModelIds.find(m => m !== selectedModelId && priorityModels.includes(m));
+                if (fallback) {
+                    console.log(`[AI] ${status} detected. Switching from ${selectedModelId} to fallback: ${fallback}`);
+                    selectedModelId = fallback;
+                    continue; // Immediately retry with the new model
                 }
+            }
+
+            // Normal backoff for transient errors
+            const isTransient = status === 503 || status === 429 || error.message?.includes('fetch') || error.message?.includes('overloaded');
+            if (!isTransient || attempt === maxRetries) {
                 break;
             }
         }
