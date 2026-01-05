@@ -253,12 +253,6 @@ ${input ? `\n【追加情報】:\n${input}` : ""}
                             <p style={{ fontSize: '0.7rem', opacity: 0.5 }}>Status</p>
                             <p style={{ fontSize: '0.8rem', fontFamily: 'monospace' }}>{errorInfo.debugInfo.status || 'unknown'}</p>
                           </div>
-                          <div style={{ gridColumn: '1 / -1' }}>
-                            <p style={{ fontSize: '0.7rem', opacity: 0.5 }}>Discovered List</p>
-                            <p style={{ fontSize: '0.7rem', fontFamily: 'monospace', opacity: 0.8, wordBreak: 'break-all' }}>
-                              {errorInfo.debugInfo.discoveredModels?.join(', ') || 'none'}
-                            </p>
-                          </div>
                         </div>
                       </div>
                     )}
