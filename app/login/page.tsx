@@ -81,7 +81,7 @@ export default function LoginPage() {
                 </form>
 
                 <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-                    <p className="text-muted">アカウントをお持ちでないですか？ <a href="#" style={{ color: 'var(--primary)', fontWeight: 500 }}>管理者に問い合わせ</a></p>
+                    <p className="text-muted">アカウントをお持ちでないですか？ <a href="mailto:yuki.uemotojb@gmail.com?subject=X-Genie%E3%82%A2%E3%82%AB%E3%82%A6%E3%83%B3%E3%83%88%E7%94%9F%E6%88%90%E4%BE%9D%E9%A0%BC&body=X-Genie%20%E3%81%B8%E3%81%AE%E3%82%A2%E3%82%AB%E3%82%A6%E3%83%B3%E3%83%88%E7%99%BA%E8%A1%8C%E3%82%92%E4%BE%9D%E9%A0%BC%E3%81%97%E3%81%BE%E3%81%99%E3%80%82%0A%E3%80%90%E3%81%8A%E5%90%8D%E5%89%8D%EF%BC%88%E6%B0%8F%E5%90%8D%EF%BC%89%E3%80%91%3A%20%0A%E3%80%90%E5%B8%8C%E6%9C%9B%E3%83%AD%E3%82%B0%E3%82%A4%E3%83%B3%E3%83%A1%E3%83%BC%E3%83%AB%E3%82%A2%E3%83%89%E3%83%AC%E3%82%B9%E3%80%91%3A%20%0A%E3%80%90%E7%B5%84%E7%B9%94%E5%90%8D%2F%E5%B1%8B%E5%8F%B7%EF%BC%88%E4%BB%BB%E6%84%8F%EF%BC%89%E3%80%91%3A%20%0A%E3%80%90%E3%81%94%E5%88%A9%E7%94%A8%E7%94%A8%E9%80%94%E3%80%91%3A%20%0A%E3%80%90%E3%81%8A%E5%95%8F%E5%90%88%E3%81%9B%E3%81%AE%E3%81%8D%E3%81%A3%E3%81%8B%E3%81%91%E3%80%91%0A%EF%BC%88%E8%A9%B2%E5%BD%93%E3%81%99%E3%82%8B%E3%82%82%E3%81%AE%E3%81%AB%E2%97%8B%E3%82%92%E3%81%A4%E3%81%91%E3%81%A6%E3%81%8F%E3%81%A0%E3%81%95%E3%81%84%EF%BC%89%0A%5B%20%20%5D%20X(Twitter)%E3%81%A7%E3%81%AE%E7%B4%B9%E4%BB%8B%0A%5B%20%20%5D%20%E7%9F%A5%E4%BA%BA%E3%81%8B%E3%82%89%E3%81%AE%E7%B4%B9%E4%BB%8B%0A%5B%20%20%5D%20%E6%A4%9C%E7%B4%A2%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%B3%0A%5B%20%20%5D%20%E3%81%9D%E3%81%AE%E4%BB%96%EF%BC%88%E3%80%80%E3%80%80%E3%80%80%E3%80%80%EF%BC%89" style={{ color: 'var(--primary)', fontWeight: 500 }}>管理者に問い合わせ</a></p>
                 </div>
             </div>
         </main>
