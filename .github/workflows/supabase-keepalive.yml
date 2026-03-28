@@ -1,0 +1,174 @@
+# ワークフローの名前
+name: Supabase Keep Alive
+
+# ワークフローを実行するタイミングを定義
+on:
+  schedule:
+    # cronはサーバーで使われるスケジュール設定。この場合「毎日午前9時(JST)」を意味します
+    - cron: '0 0 * * *'
+  # GitHubの画面から手動で実行できるようにする設定
+  workflow_dispatch:
+
+# 実行する具体的な仕事（ジョブ）を定義
+jobs:
+  # 「keepalive」という名前のジョブ
+  keepalive:
+    # 最新のUbuntu（Linux）環境で実行します
+    runs-on: ubuntu-latest
+    # 実際に行う手順（ステップ）をここから記述
+    steps:
+      # Step 1: まずはリポジトリのコードを仮想環境にコピーします（お決まりの作法です）
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Supabaseにデータを送信して「生存確認」を行います
+      - name: Ping Supabase Database
+        id: ping
+        run: |
+          echo "🏓 Supabaseデータベースに接続中..."
+
+          # 現在の日時を取得（後の処理で使用）
+          CURRENT_TIME=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
+          echo "timestamp=$CURRENT_TIME" >> $GITHUB_OUTPUT
+
+          # curlコマンドでSupabaseに健康チェックデータを送信
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+            -X POST \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=representation" \
+            -d "{
+              \"ping_at\": \"$CURRENT_TIME\",
+              \"response\": \"pong\",
+              \"source\": \"github_action_$(date +%Y%m%d)\"
+            }" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/github_keepalive")
+
+          # レスポンスからHTTPステータスコード（例: 201）と本体を分離
+          HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS:" | cut -d: -f2)
+          BODY=$(echo "$RESPONSE" | sed '/HTTP_STATUS:/d')
+
+          echo "HTTP Status: $HTTP_STATUS"
+          echo "Response Body: $BODY"
+
+          # ステータスコードをチェックして、成功か失敗かを判断
+          if [ "$HTTP_STATUS" -eq 201 ] || [ "$HTTP_STATUS" -eq 200 ]; then
+            echo "✅ Supabase接続成功"
+            echo "success=true" >> $GITHUB_OUTPUT
+            echo "message=データベース接続成功 (HTTP $HTTP_STATUS)" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Supabase接続失敗"
+            echo "success=false" >> $GITHUB_OUTPUT
+            echo "message=データベース接続失敗 (HTTP $HTTP_STATUS): $BODY" >> $GITHUB_OUTPUT
+            exit 1 # 失敗した場合はここで処理を中断
+          fi
+
+      # Step 3: データベースへの書き込みが本当に成功したかを確認
+      - name: Verify Database Record
+        id: verify
+        # 前のステップ（ping）が成功した場合のみ実行
+        if: steps.ping.outputs.success == 'true'
+        run: |
+          echo "🔍 レコード挿入を確認中..."
+
+          # 最新のレコードを1件取得して、正しく書き込まれたかを確認
+          VERIFY_RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/github_keepalive?select=id,ping_at,response&order=ping_at.desc&limit=1")
+
+          HTTP_STATUS=$(echo "$VERIFY_RESPONSE" | grep "HTTP_STATUS:" | cut -d: -f2)
+          BODY=$(echo "$VERIFY_RESPONSE" | sed '/HTTP_STATUS:/d')
+
+          if [ "$HTTP_STATUS" -eq 200 ]; then
+            echo "✅ レコード確認成功"
+            echo "Latest record: $BODY"
+            echo "verify_success=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ レコード確認失敗"
+            echo "verify_success=false" >> $GITHUB_OUTPUT
+          fi
+
+      # Step 4: 成功したことをSlackに通知
+      - name: Notify Success to Slack
+        # 前のステップ（ping）が成功した場合のみ実行
+        if: steps.ping.outputs.success == 'true'
+        # Slack通知用の便利なAction（他人が作った部品）を利用
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          # Slackに送るメッセージの内容を細かく定義
+          custom_payload: |
+            {
+              "channel": "#supabase-monitoring",
+              "username": "Supabase Keep-Alive Bot",
+              "icon_emoji": ":heart:",
+              "attachments": [
+                {
+                  "color": "good",
+                  "title": "✅ Supabase Keep-Alive 成功",
+                  "fields": [
+                    { "title": "プロジェクト", "value": "${{ github.repository }}", "short": true },
+                    { "title": "実行時間", "value": "${{ steps.ping.outputs.timestamp }}", "short": true },
+                    { "title": "ステータス", "value": "${{ steps.ping.outputs.message }}", "short": false },
+                    { "title": "確認", "value": "${{ steps.verify.outputs.verify_success == 'true' && 'レコード挿入確認済み' || 'レコード確認スキップ' }}", "short": true }
+                  ],
+                  "footer": "GitHub Actions"
+                }
+              ]
+            }
+        env:
+          # SlackのWebhook URLは秘密情報なので、GitHub Secretsから読み込む
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      # Step 5: 処理が失敗したことをSlackに通知
+      - name: Notify Failure to Slack
+        # これまでのステップのいずれかが失敗した場合にのみ実行
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          custom_payload: |
+            {
+              "channel": "#supabase-monitoring",
+              "username": "Supabase Keep-Alive Bot",
+              "icon_emoji": ":warning:",
+              "attachments": [
+                {
+                  "color": "danger",
+                  "title": "❌ Supabase Keep-Alive 失敗",
+                  "fields": [
+                    { "title": "プロジェクト", "value": "${{ github.repository }}", "short": true },
+                    { "title": "実行時間", "value": "${{ steps.ping.outputs.timestamp || '取得失敗' }}", "short": true },
+                    { "title": "エラー詳細", "value": "${{ steps.ping.outputs.message || 'エラー情報不明' }}", "short": false },
+                    { "title": "ワークフロー実行ログ", "value": "<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|詳細を確認>", "short": false }
+                  ],
+                  "footer": "GitHub Actions"
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      # Step 6: 古いログデータを自動で削除（任意ですが推奨）
+      - name: Clean up old records (optional)
+        if: steps.ping.outputs.success == 'true'
+        run: |
+          echo "🧹 古いレコードのクリーンアップ中..."
+
+          # 30日より古いレコードをDELETEリクエストで削除
+          CLEANUP_RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+            -X DELETE \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/github_keepalive?ping_at=lt.$(date -u -d '30 days ago' +%Y-%m-%dT%H:%M:%S.%3NZ)")
+
+          HTTP_STATUS=$(echo "$CLEANUP_RESPONSE" | grep "HTTP_STATUS:" | cut -d: -f2)
+
+          if [ "$HTTP_STATUS" -eq 204 ] || [ "$HTTP_STATUS" -eq 200 ]; then
+            echo "✅ クリーンアップ完了"
+          else
+            echo "⚠️ クリーンアップは失敗しましたが、メイン処理は成功しています"
+          fi
+
